@@ -1,5 +1,6 @@
 "use client"
 
+// Custom DataTable component for the Vercel deployment
 import * as React from "react"
 import {
   Table,
