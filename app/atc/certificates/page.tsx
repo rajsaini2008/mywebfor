@@ -6,11 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DataTable } from "../../../components/ui/data-table"
-import { ColumnDef } from "@tanstack/react-table"
+// Define our own ColumnDef type
 import { toast } from "@/components/ui/use-toast"
-import { Search, Download, FileText, RefreshCw } from "lucide-react"
+import { Search, FileText, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import { useAuth } from "@/lib/auth"
+
+// Define our own ColumnDef type
+interface ColumnDef<T> {
+  accessorKey: string
+  header: React.ReactNode
+  cell: (props: { row: { original: T; index: number } }) => React.ReactNode
+}
 
 interface Certificate {
   _id: string
@@ -201,7 +208,7 @@ export default function ATCCertificates() {
             className="h-8 border-blue-300 text-blue-700 hover:bg-blue-50"
             onClick={() => downloadCertificate(row.original._id)}
           >
-            <Download className="w-4 h-4" />
+            <FileText className="w-4 h-4" />
           </Button>
         </div>
       ),

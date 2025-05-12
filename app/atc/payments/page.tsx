@@ -6,11 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DataTable } from "../../../components/ui/data-table"
-import { ColumnDef } from "@tanstack/react-table"
+// Define our own ColumnDef type
 import { toast } from "@/components/ui/use-toast"
-import { Search, Download, Receipt, RefreshCw, Plus } from "lucide-react"
+import { Search, FileText, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import { useAuth } from "@/lib/auth"
+
+// Define our own ColumnDef type
+interface ColumnDef<T> {
+  accessorKey: string
+  header: React.ReactNode
+  cell: (props: { row: { original: T; index: number } }) => React.ReactNode
+}
 
 interface Payment {
   _id: string
@@ -225,7 +232,7 @@ export default function ATCPayments() {
           onClick={() => downloadReceipt(row.original._id)}
           disabled={row.original.paymentStatus !== "Paid"}
         >
-          <Receipt className="w-4 h-4 mr-2" />
+          <FileText className="w-4 h-4 mr-2" />
           Receipt
         </Button>
       ),
@@ -245,7 +252,7 @@ export default function ATCPayments() {
             })
           }}
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <FileText className="w-4 h-4 mr-2" />
           New Payment
         </Button>
         

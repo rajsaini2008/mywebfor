@@ -6,11 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DataTable } from "../../../components/ui/data-table"
-import { ColumnDef } from "@tanstack/react-table"
+// Remove tanstack table import and define our own ColumnDef type
 import { toast } from "@/components/ui/use-toast"
-import { Search, FileText, Download } from "lucide-react"
+import { Search, FileText } from "lucide-react"
 import { format } from "date-fns"
 import { useAuth } from "@/lib/auth"
+
+// Define our own ColumnDef type
+interface ColumnDef<T> {
+  accessorKey: string
+  header: React.ReactNode
+  cell: (props: { row: { original: T; index: number } }) => React.ReactNode
+}
 
 interface Student {
   _id: string
@@ -325,7 +332,7 @@ export default function ExamResults() {
                   })
                 }}
               >
-                <Download className="h-4 w-4" />
+                <FileText className="h-4 w-4" />
               </Button>
             </div>
           </div>
