@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cara Menyimpan Gambar di Aplikasi</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #2563eb;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #1e40af;
+      margin-top: 30px;
+    }
+    h3 {
+      color: #3b82f6;
+      margin-top: 25px;
+    }
+    code {
+      background-color: #f3f4f6;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    pre {
+      background-color: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    pre code {
+      background-color: transparent;
+      padding: 0;
+    }
+    ol, ul {
+      padding-left: 20px;
+    }
+    .step {
+      background-color: #f0f9ff;
+      border-left: 4px solid #3b82f6;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      border-radius: 0 4px 4px 0;
+    }
+    .pros-cons {
+      display: flex;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .pros, .cons {
+      flex: 1;
+      padding: 15px;
+      border-radius: 6px;
+    }
+    .pros {
+      background-color: #f0fdf4;
+      border: 1px solid #86efac;
+    }
+    .cons {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+    .pros h3, .cons h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+    .pros h3 {
+      color: #166534;
+    }
+    .cons h3 {
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cara Menyimpan Gambar di Aplikasi</h1>
+
+  <h2>Metode yang Digunakan</h2>
+  <p>Aplikasi ini menggunakan metode penyimpanan gambar yang efisien:</p>
+  <ol>
+    <li><strong>Image URL di form dimasukkan ke database</strong> — metode ini paling efisien untuk web development.</li>
+    <li><strong>File disimpan di server lokal</strong> (di folder /public/uploads)</li>
+    <li><strong>URL gambar disimpan di database</strong> untuk ditampilkan</li>
+  </ol>
+
+  <h2>Langkah-langkah (Step-by-Step)</h2>
+  
+  <div class="step">
+    <h3>Step 1: Image Upload</h3>
+    <ul>
+      <li>User/admin mengupload gambar melalui form</li>
+      <li>File dibaca dari form input</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h3>Step 2: Server Image Save</h3>
+    <ul>
+      <li>Backend (Node.js) menerima file dan menyimpannya</li>
+      <li>File disimpan di folder <code>/public/uploads/</code> dengan sub-folder sesuai jenis (students/photos, courses, dll)</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h3>Step 3: URL Generation</h3>
+    <p>Setelah file disimpan, URL publik dibuat:</p>
+    <ul>
+      <li>Format: <code>/uploads/[folder]/[filename]</code></li>
+      <li>Contoh: <code>/uploads/courses/1621234567-computer-course.jpg</code></li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h3>Step 4: URL di Database</h3>
+    <ul>
+      <li>URL gambar disimpan di field database (MongoDB)</li>
+      <li>Field seperti <code>imageUrl</code>, <code>photoUrl</code>, dll</li>
+    </ul>
+  </div>
+
+  <h2>Kode yang Digunakan</h2>
+
+  <h3>Upload File (Frontend)</h3>
+  <pre><code>// Upload gambar kursus
+async function uploadCourseImage(file, courseId) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('courseId', courseId);
+  
+  const response = await fetch('/api/course-image-upload', {
+    method: 'POST',
+    body: formData,
+  });
+  
+  const result = await response.json();
+  return result.url; // URL yang akan disimpan di database
+}</code></pre>
+
+  <h3>Menyimpan File (Backend)</h3>
+  <pre><code>// API untuk menyimpan file
+export async function POST(request) {
+  const formData = await request.formData();
+  const file = formData.get('file');
+  
+  // Proses file
+  const buffer = await file.arrayBuffer();
+  const filename = `${Date.now()}-${file.name}`;
+  
+  // Simpan file ke folder
+  const filePath = path.join('public/uploads', filename);
+  await writeFile(filePath, Buffer.from(buffer));
+  
+  // Buat URL publik
+  const url = `/uploads/${filename}`;
+  
+  // Simpan URL di database (contoh)
+  await updateDatabase(id, { imageUrl: url });
+  
+  return { success: true, url };
+}</code></pre>
+
+  <h2>Keuntungan Metode Ini</h2>
+  
+  <div class="pros-cons">
+    <div class="pros">
+      <h3>Kelebihan</h3>
+      <ul>
+        <li>Database lebih ringan (hanya menyimpan URL teks)</li>
+        <li>Gambar dapat diakses cepat via CDN</li>
+        <li>Mudah untuk backup/migrasi</li>
+        <li>Bekerja baik dengan frontend</li>
+      </ul>
+    </div>
+    
+    <div class="cons">
+      <h3>Kekurangan (Minor)</h3>
+      <ul>
+        <li>Perlu mengelola penyimpanan file</li>
+        <li>URL gambar bisa mati jika file dihapus</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer style="margin-top: 50px; text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280;">
+    <p>Krishna Computers - Computer Education Institute Admin Documentation</p>
+  </footer>
+</body>
+</html> 

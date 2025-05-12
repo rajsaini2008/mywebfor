@@ -1,0 +1,223 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #e67e22;
+  --primary-dark: #d35400;
+  --secondary: #1e3a8a;
+  --secondary-dark: #172b65;
+  --accent-green: #10b981;
+  --accent-pink: #ec4899;
+  --accent-blue: #3b82f6;
+  --accent-yellow: #f59e0b;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  color: #333;
+  background-color: #f8f8f8;
+  overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
+  min-height: 100vh;
+}
+
+/* Admin page layout fixes */
+.admin-page {
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-card-content {
+  flex: 1;
+}
+
+/* Ensure tables don't overflow */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.hero-banner {
+  background-color: var(--primary);
+  background-image: linear-gradient(rgba(212, 175, 55, 0.9), rgba(212, 175, 55, 0.9));
+}
+
+.feature-card {
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.green-card {
+  background-color: var(--accent-green);
+}
+
+.yellow-card {
+  background-color: var(--accent-yellow);
+}
+
+.blue-card {
+  background-color: var(--accent-blue);
+}
+
+.pink-card {
+  background-color: var(--accent-pink);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Reduce font sizes on mobile */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  /* Adjust spacing for form elements */
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+  
+  /* Make buttons more tappable */
+  button, 
+  .btn,
+  [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Improve form controls spacing on mobile */
+  input, select, textarea {
+    margin-bottom: 0.75rem;
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+
+  /* Reduce paddings for mobile */
+  .card, .section {
+    padding: 1rem !important;
+  }
+
+  /* Better table styles for mobile */
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Stack flex items on mobile */
+  .flex-stack-mobile {
+    flex-direction: column !important;
+  }
+
+  /* Hide elements with this class on mobile */
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* Tablet responsiveness */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Tablet specific adjustments */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Improved table responsiveness */
+.responsive-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Utility classes for responsive spacing */
+.mb-resp {
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .mb-resp {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Mobile navigation enhancements */
+.mobile-nav {
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-primary-dark {
+  background-color: var(--primary-dark);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.border-primary {
+  border-color: var(--primary);
+}
+
+.focus\:border-primary:focus {
+  border-color: var(--primary);
+}
+
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--primary);
+}
+
+.hover\:bg-primary-dark:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Form Styles */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+select,
+textarea {
+  @apply w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm;
+}
+
+/* File Input Styles */
+.file-input-button {
+  @apply block w-full text-sm text-gray-500;
+}
+
+.file-input-button::file-selector-button {
+  @apply mr-4 py-2 px-4 rounded-md border-0 text-sm font-semibold bg-primary text-white hover:bg-primary-dark;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700;
+}
+
+.required-field::after {
+  content: "*";
+  @apply text-red-500 ml-1;
+}

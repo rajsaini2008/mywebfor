@@ -1,0 +1,58 @@
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+  /* General adjustments */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Header adjustments */
+  .header-nav {
+    flex-direction: column;
+  }
+
+  /* Dashboard cards */
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  /* Tables */
+  .responsive-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Forms */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Sidebar */
+  .sidebar-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .sidebar-mobile.open {
+    transform: translateX(0);
+  }
+
+  /* Mobile menu button */
+  .mobile-menu-button {
+    display: block;
+  }
+}
+
+/* Tablet responsiveness */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
