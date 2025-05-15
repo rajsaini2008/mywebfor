@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import connectToDatabase from "@/lib/mongodb"
 import Background from "@/models/Background"
+import { cloudinaryUpload } from "@/lib/cloudinary"
 
 export async function POST(request: Request) {
   try {
@@ -27,13 +28,16 @@ export async function POST(request: Request) {
       )
     }
 
-    // Convert file to base64
+    // Convert file to buffer for Cloudinary upload
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     
-    // For a real implementation, we would upload to a storage service
-    // Here, we'll simulate it by creating a data URL
-    const imageUrl = `data:${file.type};base64,${buffer.toString("base64")}`
+    // Upload to Cloudinary
+    const folder = `cms/backgrounds/${type}`
+    const result = await cloudinaryUpload(buffer, folder)
+    
+    // Get the image URL from Cloudinary
+    const imageUrl = result.secure_url
 
     // Create a new background document
     const background = await Background.create({

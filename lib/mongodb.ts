@@ -36,14 +36,14 @@ async function connectToDatabase() {
       await mongoose.disconnect()
     }
     
-    console.log("Connecting to MongoDB...")
+    console.log("Connecting to MongoDB:", MONGODB_URI)
     
     // Connect with explicit options for reliability
     const conn = await mongoose.connect(MONGODB_URI, {
-      connectTimeoutMS: 10000, // 10 seconds
+      connectTimeoutMS: 30000, // 30 seconds
       socketTimeoutMS: 45000,  // 45 seconds
       maxPoolSize: 10,         // Maximum number of connections
-      serverSelectionTimeoutMS: 5000, // Server selection timeout
+      serverSelectionTimeoutMS: 30000, // Server selection timeout
     })
     
     isConnected = true
@@ -64,8 +64,21 @@ async function connectToDatabase() {
   } catch (error) {
     console.error("MongoDB connection error:", error)
     isConnected = false
-    throw error
+    
+    // Additional debugging
+    if (error instanceof Error) {
+      console.error("Error message:", error.message)
+      console.error("Error stack:", error.stack)
+    }
+    
+    // Attempt reconnection after error
+    console.log("Will retry connection in 5 seconds...")
+    await new Promise(resolve => setTimeout(resolve, 5000))
+    return connectToDatabase()
   }
 }
+
+// Add named export for compatibility with existing code
+export const connectToDB = connectToDatabase
 
 export default connectToDatabase

@@ -24,7 +24,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RichTextEditor } from "@/components/ui/rich-text-editor"
+import TinyMCEWrapper from "@/components/TinyMCEWrapper"
+import { UploadCloud } from "lucide-react"
 import * as z from "zod"
 
 // Define the form schema for the main content
@@ -233,7 +234,7 @@ export default function HomePageEditor() {
         // Upload the banner image
         const formData = new FormData();
         formData.append('file', values.bannerImage);
-        formData.append('folder', 'banners');
+        formData.append('folder', 'cms/home/banners');
         
         const uploadResponse = await fetch("/api/local-upload", {
           method: "POST",
@@ -584,7 +585,7 @@ export default function HomePageEditor() {
                           <FormItem>
                             <FormLabel>Content</FormLabel>
                             <FormControl>
-                              <RichTextEditor
+                              <TinyMCEWrapper
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="Enter content"
@@ -619,7 +620,7 @@ export default function HomePageEditor() {
                           <FormItem>
                             <FormLabel>Content</FormLabel>
                             <FormControl>
-                              <RichTextEditor
+                              <TinyMCEWrapper
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="Enter content"
@@ -654,7 +655,7 @@ export default function HomePageEditor() {
                           <FormItem>
                             <FormLabel>Content</FormLabel>
                             <FormControl>
-                              <RichTextEditor
+                              <TinyMCEWrapper
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="Enter content"
@@ -689,7 +690,7 @@ export default function HomePageEditor() {
                           <FormItem>
                             <FormLabel>Content</FormLabel>
                             <FormControl>
-                              <RichTextEditor
+                              <TinyMCEWrapper
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="Enter content"
@@ -761,7 +762,7 @@ export default function HomePageEditor() {
                       <FormItem>
                         <FormLabel>Content</FormLabel>
                         <FormControl>
-                          <RichTextEditor
+                          <TinyMCEWrapper
                             value={field.value}
                             onChange={field.onChange}
                             placeholder="Enter section content"
@@ -883,10 +884,10 @@ export default function HomePageEditor() {
                       <FormItem>
                         <FormLabel>Content</FormLabel>
                         <FormControl>
-                          <RichTextEditor
+                          <TinyMCEWrapper
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder="Enter content"
+                            placeholder="Enter CTA description"
                           />
                         </FormControl>
                         <FormMessage />

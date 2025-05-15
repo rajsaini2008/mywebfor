@@ -1,4 +1,12 @@
 import { put } from "@vercel/blob"
+import { v2 as cloudinary } from 'cloudinary'
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: "dhsebufhc",
+  api_key: "282789619175981",
+  api_secret: "LONu1tS8eqp240QL0GdkuU2pYIk",
+});
 
 export async function uploadFile(file: File, folder = "uploads") {
   try {
@@ -7,29 +15,36 @@ export async function uploadFile(file: File, folder = "uploads") {
       return null;
     }
 
-    // Sanitize folder name and ensure it has a trailing slash if provided
-    const sanitizedFolder = folder.trim().replace(/\s+/g, "-");
-    const folderPath = sanitizedFolder ? `${sanitizedFolder}/` : "";
+    console.log(`Uploading file ${file.name} to ${folder} using Cloudinary`);
     
-    // Sanitize filename to ensure it's URL-safe
-    const sanitizedFilename = file.name.replace(/\s+/g, "-").toLowerCase();
+    // Convert file to buffer for Cloudinary upload
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
     
-    // Create a unique filename with timestamp
-    const uniqueFilename = `${folderPath}${Date.now()}-${sanitizedFilename}`;
+    // Add timestamp to filename to ensure uniqueness
+    const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
     
-    console.log(`Uploading file ${sanitizedFilename} to ${folderPath}`);
-
-    // Upload to blob storage
-    const blob = await put(uniqueFilename, file, {
-      access: "public",
+    // Use Cloudinary for uploads
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: "auto",
+          public_id: uniqueFileName.replace(/\.[^/.]+$/, ""), // Remove extension from public_id
+        },
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary upload error:", error);
+            reject(error);
+          } else {
+            console.log("File uploaded successfully to Cloudinary, URL:", result?.secure_url);
+            resolve(result?.secure_url);
+          }
+        }
+      );
+      
+      uploadStream.end(buffer);
     });
-
-    if (!blob || !blob.url) {
-      throw new Error("Upload completed but no URL was returned");
-    }
-
-    console.log(`File uploaded successfully, URL: ${blob.url}`);
-    return blob.url;
   } catch (error) {
     console.error("Error uploading file:", error);
     
@@ -47,6 +62,8 @@ export async function uploadFile(file: File, folder = "uploads") {
       return `/placeholder.svg?text=Signature&width=400&height=100&id=${fileId}`;
     } else if (folder.includes("courses")) {
       return `/placeholder.svg?text=Course&width=600&height=400&id=${fileId}`;
+    } else if (folder.includes("legal-documents")) {
+      return `/placeholder.svg?text=Legal-Document&width=600&height=400&id=${fileId}`;
     }
     
     // Generic fallback

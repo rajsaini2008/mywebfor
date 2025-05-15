@@ -1,53 +1,105 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { existsSync } from 'fs';
+import { cloudinaryUpload } from '@/lib/cloudinary';
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const uploadedFiles: { [key: string]: string } = {};
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'students');
+    const uploadedFiles: string[] = [];
+    const fileMap: {[key: string]: string} = {};
     
-    // Ensure upload directory exists
-    if (!existsSync(uploadDir)) {
-      console.log(`Creating upload directory: ${uploadDir}`);
-      await mkdir(uploadDir, { recursive: true });
+    // Extract folder value - use last folder value if multiple exist
+    let folderValue = 'uploads';
+    const folderValues = formData.getAll('folder');
+    if (folderValues.length > 0) {
+      // Use the last folder value (most specific to each file)
+      folderValue = String(folderValues[folderValues.length - 1]);
+      // Remove all folder entries from formData to avoid processing them as files
+      for (const entry of formData.entries()) {
+        if (entry[0] === 'folder') {
+          formData.delete('folder');
+        }
+      }
     }
-
-    console.log(`Processing ${formData.entries.length} files for upload`);
     
-    // Process each file in the form data
-    for (const [fieldName, file] of formData.entries()) {
+    console.log(`Processing uploads with folder: ${folderValue}`);
+    
+    // Check if this is a single file upload (common case)
+    const isSingleFileUpload = formData.has('file');
+    let singleFileUrl = '';
+    
+    for (const [key, file] of formData.entries()) {
       if (file instanceof File) {
-        console.log(`Processing file: ${fieldName}, filename: ${file.name}, size: ${file.size} bytes`);
-        
-        // Generate a unique filename
-        const fileName = `${uuidv4()}-${file.name}`;
-        const filePath = join(uploadDir, fileName);
+        console.log(`Processing file ${file.name}, size: ${file.size} bytes, key: ${key}`);
         
         // Convert the file to a buffer
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-
-        // Save the file
-        await writeFile(filePath, buffer);
         
-        // Store the public URL
-        const fileUrl = `/uploads/students/${fileName}`;
-        uploadedFiles[fieldName] = fileUrl;
+        // Use the specified folder or determine based on key and file
+        let folder = folderValue;
         
-        console.log(`File saved: ${fieldName} -> ${fileUrl}`);
+        // If no specific student folder is provided, create a more organized structure
+        if (!folder.includes('/')) {
+          if (key.includes('photo') || file.name.includes('photo')) {
+            folder = 'students/photos';
+          } else if (key.includes('idcard') || file.name.includes('idcard')) {
+            folder = 'students/idcards';
+          } else if (key.includes('signature') || file.name.includes('sign')) {
+            folder = 'students/signatures';
+          } else if (key.includes('course') || file.name.includes('course')) {
+            folder = 'courses';
+          } else if (key.includes('banner') || file.name.includes('banner')) {
+            folder = 'banners';
+          } else if (key.includes('background') || file.name.includes('background')) {
+            folder = 'backgrounds';
+          } else if (file.type.includes('image')) {
+            folder = 'images';
+          }
+        }
+        
+        // Add timestamp to filename to ensure uniqueness
+        const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+        
+        // Upload to Cloudinary with public_id for better organization
+        const result: any = await cloudinaryUpload(
+          buffer, 
+          folder,
+          uniqueFileName
+        );
+        
+        // Store the Cloudinary URL
+        const secureUrl = result.secure_url;
+        uploadedFiles.push(secureUrl);
+        
+        // Also store in a key-value map for named access
+        fileMap[key] = secureUrl;
+        
+        // For single-file uploads, store URL specifically
+        if (isSingleFileUpload && key === 'file') {
+          singleFileUrl = secureUrl;
+        }
+        
+        console.log(`Uploaded to Cloudinary, folder: ${folder}, URL: ${secureUrl}`);
       }
     }
 
-    console.log('Upload complete. Uploaded files:', uploadedFiles);
-    
+    // For single file uploads, ensure we have a consistent response format
+    // that works with existing code
+    if (isSingleFileUpload && singleFileUrl) {
+      return NextResponse.json({
+        success: true,
+        message: 'File uploaded successfully',
+        urls: [singleFileUrl],
+        fileMap: { file: singleFileUrl }
+      });
+    }
+
+    // For multiple files
     return NextResponse.json({
       success: true,
       message: 'Files uploaded successfully',
-      urls: uploadedFiles
+      urls: uploadedFiles,
+      fileMap: fileMap
     });
 
   } catch (error) {

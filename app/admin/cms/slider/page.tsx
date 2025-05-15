@@ -26,7 +26,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { RichTextEditor } from "@/components/ui/rich-text-editor"
+import TinyMCEWrapper from "@/components/TinyMCEWrapper"
+import { Trash2, Pencil, PlusCircle } from "lucide-react"
 
 // Define the form schema
 const sliderFormSchema = z.object({
@@ -186,9 +187,10 @@ export default function SliderEditor() {
                       <FormItem>
                         <FormLabel>Box Description *</FormLabel>
                         <FormControl>
-                          <RichTextEditor
+                          <TinyMCEWrapper
                             value={field.value}
                             onChange={field.onChange}
+                            placeholder="Enter content for the slide"
                           />
                         </FormControl>
                         <FormMessage />
@@ -217,10 +219,10 @@ export default function SliderEditor() {
                       <FormItem>
                         <FormLabel>Box Description 1 *</FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Enter box description"
-                            rows={3}
+                          <TinyMCEWrapper
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Enter slide button text"
                           />
                         </FormControl>
                         <FormMessage />
@@ -249,10 +251,10 @@ export default function SliderEditor() {
                       <FormItem>
                         <FormLabel>Box Description 2</FormLabel>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Enter box description (optional)"
-                            rows={3}
+                          <TinyMCEWrapper
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Enter slide button URL"
                           />
                         </FormControl>
                         <FormMessage />

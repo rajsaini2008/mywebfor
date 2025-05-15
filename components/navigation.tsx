@@ -1,11 +1,58 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu as MenuIcon, X, ChevronDown } from "lucide-react"
+import { Menu } from "@/components/ui/icons"
+import { GlobalSettings } from "@/lib/getGlobalSettings"
 
-export default function Navigation() {
+// Add props to accept global settings
+interface NavigationProps {
+  globalSettings: GlobalSettings;
+}
+
+export default function Navigation({ globalSettings }: NavigationProps) {
   const [isNavOpen, setIsNavOpen] = useState(false)
+  const [isLegalDropdownOpen, setIsLegalDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Add a small delay before closing the dropdown when mouse leaves
+  const closeDropdownTimer = useRef<NodeJS.Timeout | null>(null)
+  
+  const handleMouseEnter = () => {
+    if (closeDropdownTimer.current) {
+      clearTimeout(closeDropdownTimer.current)
+      closeDropdownTimer.current = null
+    }
+    setIsLegalDropdownOpen(true)
+  }
+  
+  const handleMouseLeave = () => {
+    // Add a delay before closing to allow users to move cursor to the dropdown
+    closeDropdownTimer.current = setTimeout(() => {
+      setIsLegalDropdownOpen(false)
+    }, 300) // 300ms delay
+  }
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsLegalDropdownOpen(false)
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  // Default logo placeholder if no logo is set
+  const logoUrl = globalSettings.logo || "/placeholder.svg?height=80&width=80";
+  const siteName = globalSettings.websiteName || "Krishna Computer";
 
   return (
     <nav className="bg-white py-2 shadow-md">
@@ -13,18 +60,17 @@ export default function Navigation() {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Image
-              src="/placeholder.svg?height=80&width=80"
-              alt="Krishna Computer Logo"
-              width={60}
-              height={60}
-              className="mr-2"
-            />
-            <div className="text-lg md:text-2xl font-bold text-gray-800">
-              <span className="text-blue-800">KRISHNA</span>
-              <br />
-              <span className="text-gray-700">COMPUTER</span>
-            </div>
+            {logoUrl && (
+              <Image
+                src={logoUrl}
+                alt={siteName}
+                width={180}
+                height={180}
+                className="mr-4 py-1"
+                style={{ objectFit: 'contain', maxHeight: '80px' }}
+                unoptimized={true}
+              />
+            )}
           </Link>
 
           {/* Mobile menu button */}
@@ -53,9 +99,38 @@ export default function Navigation() {
             <Link href="/gallery" className="text-gray-700 hover:text-blue-800 font-medium">
               GALLERY
             </Link>
-            <Link href="/legal" className="text-gray-700 hover:text-blue-800 font-medium">
-              LEGAL
-            </Link>
+            
+            {/* Legal Dropdown - Hover-based but with improved interaction */}
+            <div 
+              ref={dropdownRef}
+              className="relative" 
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="text-gray-700 hover:text-blue-800 font-medium flex items-center gap-1 cursor-pointer">
+                LEGAL <ChevronDown className="h-4 w-4" />
+              </div>
+              
+              {isLegalDropdownOpen && (
+                <div className="absolute left-0 top-full mt-1 py-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  <Link 
+                    href="/legal" 
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-800"
+                    onClick={() => setIsLegalDropdownOpen(false)}
+                  >
+                    Legal Information
+                  </Link>
+                  <Link 
+                    href="/legal/documents" 
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-800"
+                    onClick={() => setIsLegalDropdownOpen(false)}
+                  >
+                    Legal Documents
+                  </Link>
+                </div>
+              )}
+            </div>
+            
             <Link href="/contact-us" className="text-gray-700 hover:text-blue-800 font-medium">
               CONTACT US
             </Link>
@@ -99,13 +174,28 @@ export default function Navigation() {
             >
               GALLERY
             </Link>
-            <Link 
-              href="/legal" 
-              className="py-2 px-3 text-gray-700 hover:bg-gray-100 hover:text-blue-800 font-medium rounded-md"
-              onClick={() => setIsNavOpen(false)}
-            >
+            
+            {/* Mobile Legal Submenu */}
+            <div className="py-2 px-3 text-gray-700 font-medium">
               LEGAL
-            </Link>
+              <div className="pl-4 mt-1 space-y-1">
+                <Link 
+                  href="/legal" 
+                  className="block py-1 px-2 text-gray-600 hover:bg-gray-100 hover:text-blue-800 rounded-md"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  Legal Information
+                </Link>
+                <Link 
+                  href="/legal/documents" 
+                  className="block py-1 px-2 text-gray-600 hover:bg-gray-100 hover:text-blue-800 rounded-md"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  Legal Documents
+                </Link>
+              </div>
+            </div>
+            
             <Link 
               href="/contact-us" 
               className="py-2 px-3 text-gray-700 hover:bg-gray-100 hover:text-blue-800 font-medium rounded-md"
@@ -119,13 +209,6 @@ export default function Navigation() {
               onClick={() => setIsNavOpen(false)}
             >
               JOBS
-            </Link>
-            <Link 
-              href="/certificate-verification" 
-              className="py-2 px-3 bg-red-500 text-white hover:bg-red-600 font-medium rounded-md text-center mt-2"
-              onClick={() => setIsNavOpen(false)}
-            >
-              CERTIFICATE VERIFICATION
             </Link>
           </div>
         )}

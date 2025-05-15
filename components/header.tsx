@@ -1,9 +1,19 @@
+"use client"
+
 import Link from "next/link"
 import { useState } from "react"
-import { Phone, Mail, Facebook, Twitter, Instagram, Info, Menu, X } from "lucide-react"
+import { Facebook, Instagram, Twitter, Info, X, Menu, Phone, Mail } from "@/components/ui/icons"
+import { GlobalSettings } from "@/lib/getGlobalSettings"
 
-export default function Header() {
+// Add props to accept global settings
+interface HeaderProps {
+  globalSettings: GlobalSettings;
+}
+
+export default function Header({ globalSettings }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const mobile = globalSettings.mobile || "9001203861, 9772225669";
+  const email = globalSettings.email || "krishna.computers.official2008@gmail.com";
 
   return (
     <div className="bg-black text-white py-2 px-4">
@@ -13,23 +23,23 @@ export default function Header() {
           <div className="flex items-center gap-4 mb-2 md:mb-0 flex-wrap justify-center">
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
-              <span className="text-sm">9001203861, 9772225669</span>
+              <span className="text-sm">{mobile}</span>
             </div>
             <div className="flex items-center gap-2 hidden sm:flex">
               <Mail className="h-4 w-4" />
-              <span className="text-sm truncate max-w-[180px] sm:max-w-none">krishna.computers.official2008@gmail.com</span>
+              <span className="text-sm truncate max-w-[180px] sm:max-w-none">{email}</span>
             </div>
           </div>
           
           {/* Social media icons - always visible */}
           <div className="flex items-center gap-4">
-            <Link href="#" aria-label="Facebook">
+            <Link href={globalSettings.facebookLink || "#"} aria-label="Facebook" target="_blank" rel="noopener noreferrer">
               <Facebook className="h-4 w-4" />
             </Link>
-            <Link href="#" aria-label="Twitter">
+            <Link href={globalSettings.twitterLink || "#"} aria-label="Twitter" target="_blank" rel="noopener noreferrer">
               <Twitter className="h-4 w-4" />
             </Link>
-            <Link href="#" aria-label="Instagram">
+            <Link href={globalSettings.instagramLink || "#"} aria-label="Instagram" target="_blank" rel="noopener noreferrer">
               <Instagram className="h-4 w-4" />
             </Link>
             <Link href="#" aria-label="Information">
@@ -83,7 +93,7 @@ export default function Header() {
             </Link>
             <div className="flex items-center gap-2 sm:hidden pt-1">
               <Mail className="h-4 w-4" />
-              <span className="text-sm text-gray-300">krishna.computers.official2008@gmail.com</span>
+              <span className="text-sm text-gray-300">{email}</span>
             </div>
           </div>
         )}

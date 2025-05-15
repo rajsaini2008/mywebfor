@@ -6,13 +6,20 @@ export function middleware(request: NextRequest) {
 
   // Check if the path is for the admin panel
   if (path.startsWith("/admin")) {
-    // Get the auth token from cookies
-    const authToken = request.cookies.get("admin_token")?.value
+    // Get the auth token from cookies - check both admin_token and auth_token
+    const adminToken = request.cookies.get("admin_token")?.value
+    const authToken = request.cookies.get("auth_token")?.value
+    
+    const hasValidToken = adminToken || authToken
 
-    // If there's no token and the path is not the login page, redirect to login
-    if (!authToken && path !== "/login") {
+    // If there's no token, redirect to login
+    if (!hasValidToken) {
+      console.log(`No valid token found for admin path: ${path}. Redirecting to login.`)
       return NextResponse.redirect(new URL("/login", request.url))
     }
+    
+    // Allow the request to proceed
+    return NextResponse.next()
   }
 
   return NextResponse.next()

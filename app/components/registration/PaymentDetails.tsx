@@ -134,19 +134,45 @@ const PaymentDetails = ({ data, updateData, onSubmit, onBack, isEditing, student
       const uploadFiles = async () => {
         const formData = new FormData();
         
-        // Add all files to FormData if they exist
-        if (data.photo instanceof File) formData.append('photo', data.photo);
-        if (data.signature instanceof File) formData.append('signature', data.signature);
-        if (data.aadharCard instanceof File) formData.append('aadharCard', data.aadharCard);
-        if (data.previousMarksheet instanceof File) formData.append('previousMarksheet', data.previousMarksheet);
-        if (data.photoIdProof instanceof File) formData.append('photoIdProof', data.photoIdProof);
-        if (data.certificateProof instanceof File) formData.append('certificateProof', data.certificateProof);
+        // Generate a unique student folder ID that will be consistent for this student
+        const studentId = data.aadharNo ? 
+          data.aadharNo.substring(0, 6) : 
+          Date.now().toString().substring(0, 6);
+        
+        const studentFolder = `students/${data.name.toLowerCase().replace(/\s+/g, '_')}_${studentId}`;
+        console.log(`Creating student folder: ${studentFolder}`);
+        
+        // Add all files to FormData if they exist with proper folder designations
+        if (data.photo instanceof File) {
+          formData.append('photo', data.photo);
+          formData.append('folder', `${studentFolder}/photos`);
+        }
+        if (data.signature instanceof File) {
+          formData.append('signature', data.signature);
+          formData.append('folder', `${studentFolder}/signatures`);
+        }
+        if (data.aadharCard instanceof File) {
+          formData.append('aadharCard', data.aadharCard);
+          formData.append('folder', `${studentFolder}/idcards`);
+        }
+        if (data.previousMarksheet instanceof File) {
+          formData.append('previousMarksheet', data.previousMarksheet);
+          formData.append('folder', `${studentFolder}/documents`);
+        }
+        if (data.photoIdProof instanceof File) {
+          formData.append('photoIdProof', data.photoIdProof);
+          formData.append('folder', `${studentFolder}/identities`);
+        }
+        if (data.certificateProof instanceof File) {
+          formData.append('certificateProof', data.certificateProof);
+          formData.append('folder', `${studentFolder}/certificates`);
+        }
 
         // Only upload if there are files
         if (formData.has('photo') || formData.has('signature') || formData.has('aadharCard') || 
             formData.has('previousMarksheet') || formData.has('photoIdProof') || formData.has('certificateProof')) {
           
-          console.log("Uploading files...");
+          console.log("Uploading files to Cloudinary...");
           const uploadResponse = await fetch('/api/upload', {
             method: 'POST',
             body: formData,
@@ -160,6 +186,35 @@ const PaymentDetails = ({ data, updateData, onSubmit, onBack, isEditing, student
           
           const responseData = await uploadResponse.json();
           console.log("Upload response:", responseData);
+          
+          // Convert array of URLs to object with field names
+          if (responseData.success && Array.isArray(responseData.urls)) {
+            const urlsObject: {[key: string]: string} = {};
+            let urlIndex = 0;
+            
+            // Map each URL to the corresponding field
+            if (data.photo instanceof File && urlIndex < responseData.urls.length) {
+              urlsObject.photo = responseData.urls[urlIndex++];
+            }
+            if (data.signature instanceof File && urlIndex < responseData.urls.length) {
+              urlsObject.signature = responseData.urls[urlIndex++];
+            }
+            if (data.aadharCard instanceof File && urlIndex < responseData.urls.length) {
+              urlsObject.aadharCard = responseData.urls[urlIndex++];
+            }
+            if (data.previousMarksheet instanceof File && urlIndex < responseData.urls.length) {
+              urlsObject.previousMarksheet = responseData.urls[urlIndex++];
+            }
+            if (data.photoIdProof instanceof File && urlIndex < responseData.urls.length) {
+              urlsObject.photoIdProof = responseData.urls[urlIndex++];
+            }
+            if (data.certificateProof instanceof File && urlIndex < responseData.urls.length) {
+              urlsObject.certificateProof = responseData.urls[urlIndex++];
+            }
+            
+            return { urls: urlsObject };
+          }
+          
           return responseData;
         }
         
@@ -169,7 +224,12 @@ const PaymentDetails = ({ data, updateData, onSubmit, onBack, isEditing, student
       // Upload files first
       const uploadResult = await uploadFiles();
       console.log("Upload result:", uploadResult);
-      const uploadedFiles = uploadResult.urls || {};
+      let uploadedFiles = uploadResult.urls || {};
+      
+      // Use the fileMap if available (new API response format)
+      if (uploadResult.fileMap) {
+        uploadedFiles = uploadResult.fileMap;
+      }
       
       // Log the uploaded file URLs to help with debugging
       console.log("Uploaded file URLs:", uploadedFiles);

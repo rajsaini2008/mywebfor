@@ -22,6 +22,7 @@ import {
   Pencil,
   Clock,
   Mail,
+  User,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
@@ -82,6 +83,11 @@ export default function AdminSidebar() {
       name: "Certificates",
       href: "/admin/certificates",
       icon: <Award className="h-5 w-5" />,
+    },
+    {
+      name: "Email & Password",
+      href: "/admin/settings/profile",
+      icon: <User className="h-5 w-5" />,
     },
     {
       name: "Show All Passwords",

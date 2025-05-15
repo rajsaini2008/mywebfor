@@ -25,6 +25,8 @@ export async function POST(request: Request) {
     
     // Try to find user in the Users collection first
     try {
+      console.log(`Searching for user with identifier: ${identifier}`)
+      
       const user = await User.findOne({ 
         $or: [
           { username: identifier },
@@ -32,9 +34,14 @@ export async function POST(request: Request) {
         ]
       });
       
+      console.log(`User search result: ${user ? 'Found user' : 'User not found'}`)
+      
       if (user) {
+        console.log(`User found with role: ${user.role}, id: ${user._id}`)
+        
         // Verify if password matches (assuming it's hashed)
         const passwordMatch = await bcrypt.compare(password, user.password);
+        console.log(`Password match result: ${passwordMatch ? 'Password matches' : 'Password does not match'}`)
         
         if (passwordMatch) {
           // If this is the right role, return success
@@ -43,6 +50,8 @@ export async function POST(request: Request) {
             (type === "subcenter" && user.role === "atc") ||
             (type === "admin" && user.role === "admin")
           ) {
+            console.log(`Successful login for ${type} with identifier: ${identifier}`)
+            
             // Don't return the password in the response
             const userObj = user.toObject();
             delete userObj.password;
@@ -52,6 +61,8 @@ export async function POST(request: Request) {
               message: "Login successful",
               user: userObj
             })
+          } else {
+            console.log(`Role mismatch. Expected: ${type}, Actual: ${user.role}`)
           }
         }
       }

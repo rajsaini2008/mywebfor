@@ -132,4 +132,51 @@ Students who were assigned online exams from the "Apply for Exam" page were not 
 5. When completed, answers are submitted and score is calculated
 
 ## Note for Administrators
-Make sure "paperType" is explicitly set to "online" when assigning exams that should be taken online by students. 
+Make sure "paperType" is explicitly set to "online" when assigning exams that should be taken online by students.
+
+## TinyMCE Integration
+
+The CMS panel now uses TinyMCE for rich text editing capabilities. The editor is integrated into the following sections:
+
+1. Home page - Feature boxes, About section, and CTA content
+2. About page - Story content, Value descriptions, and Team member descriptions
+3. Slider page - Slide descriptions and content
+
+### Using TinyMCE in Forms
+
+To use TinyMCE in your forms, import and use it as follows:
+
+```tsx
+import TinyMCEWrapper from "@/components/TinyMCEWrapper";
+
+// In your form component
+<FormField
+  control={form.control}
+  name="content"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Content</FormLabel>
+      <FormControl>
+        <TinyMCEWrapper
+          value={field.value}
+          onChange={field.onChange}
+          placeholder="Enter rich text content here..."
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+The TinyMCE component provides rich text editing with support for:
+- Text formatting (bold, italic, underline)
+- Lists (bulleted and numbered)
+- Links
+- Tables
+- Media embeds
+- Text alignment
+- Font colors and backgrounds
+- And more
+
+The HTML content is stored in your database and can be rendered in your pages using `dangerouslySetInnerHTML` or processed with a HTML sanitizer like DOMPurify. 

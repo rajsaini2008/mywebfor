@@ -1,69 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { mkdir } from 'fs/promises';
-import path from 'path';
 
 /**
- * API route for local file uploads
- * Follows the 4-step approach from the screenshot:
- * 1. Accept uploaded file from form
- * 2. Save file to local /uploads directory
- * 3. Generate a public URL for the file
- * 4. Return URL to be saved in database
+ * API route for file uploads - now redirects to Cloudinary-based upload
+ * Takes the same params but forwards to Cloudinary upload
  */
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const folder = formData.get('folder') as string || 'general';
-
-    if (!file) {
-      return NextResponse.json(
-        { success: false, message: 'No file uploaded' },
-        { status: 400 }
-      );
-    }
-
-    // Extract file information
-    const fileBuffer = Buffer.from(await file.arrayBuffer());
-    const fileName = file.name.replace(/\s+/g, '-').toLowerCase();
-    const uniqueFileName = `${Date.now()}-${fileName}`;
-    
-    // Create folder path
-    const sanitizedFolder = folder.replace(/\s+/g, '-').toLowerCase();
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', sanitizedFolder);
-    
-    // Ensure upload directory exists
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      console.error('Error creating directory:', error);
-    }
-
-    // Define full file path
-    const filePath = path.join(uploadDir, uniqueFileName);
-    
-    // Save the file
-    await writeFile(filePath, fileBuffer);
-    
-    // Generate public URL
-    const publicUrl = `/uploads/${sanitizedFolder}/${uniqueFileName}`;
-    
-    console.log(`File saved: ${filePath}`);
-    console.log(`Public URL: ${publicUrl}`);
-
-    // Return success response with URL
-    return NextResponse.json({
-      success: true,
-      message: 'File uploaded successfully',
-      url: publicUrl,
-      fileName: uniqueFileName,
-      originalName: file.name,
-      size: file.size,
-      type: file.type
+    // Simply forward to the new Cloudinary API endpoint
+    const response = await fetch(new URL('/api/upload', request.url).toString(), {
+      method: 'POST',
+      body: await request.formData(),
+      headers: {
+        // Forward relevant headers
+        'x-forwarded-for': request.headers.get('x-forwarded-for') || '',
+        'user-agent': request.headers.get('user-agent') || '',
+      },
     });
+
+    // Return the response from the new API
+    const result = await response.json();
+    
+    // Format the response to match what client code expects
+    if (result.success && result.urls && result.urls.length > 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'File uploaded successfully',
+        url: result.urls[0],
+        fileName: result.originalName || 'unknown',
+        size: result.size || 0,
+        type: result.type || 'unknown'
+      });
+    }
+
+    // Pass through error response
+    return NextResponse.json(
+      { success: false, message: result.message || 'Upload failed' },
+      { status: response.status }
+    );
   } catch (error: any) {
-    console.error('Upload error:', error);
+    console.error('Upload redirection error:', error);
     return NextResponse.json(
       { success: false, message: error.message || 'Failed to upload file' },
       { status: 500 }

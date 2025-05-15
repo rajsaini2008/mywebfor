@@ -2,12 +2,6 @@
 
 import { useState, useEffect } from "react"
 
-// Default admin credentials
-const DEFAULT_ADMIN = {
-  email: "admin@krishnacomputers.com",
-  password: "admin123",
-}
-
 // Generate a unique tab ID if one doesn't exist
 const getTabId = () => {
   if (typeof window === "undefined") return "";
@@ -20,13 +14,13 @@ const getTabId = () => {
   return tabId;
 }
 
-// Use prefix with tab ID to make auth data specific to each tab
+// Get storage key with tab ID prefix to isolate sessions
 const getStorageKey = (key: string) => {
   const tabId = getTabId();
   return `${tabId}_${key}`;
 }
 
-// Interface for user data
+// User interface
 interface User {
   _id: string;
   [key: string]: any;
@@ -61,24 +55,49 @@ export function useAuth() {
     try {
       console.log(`Attempting ${type} login with identifier: ${identifier}`);
       
-      // Check if credentials match
-      if (type === "admin" && identifier === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
-        // Set token in sessionStorage with tab-specific key
-        const token = `admin-${Date.now()}`;
-        const adminId = `admin-${Date.now()}`;
-        sessionStorage.setItem(getStorageKey("auth_token"), token)
-        sessionStorage.setItem(getStorageKey("user_type"), "admin")
-        sessionStorage.setItem(getStorageKey("current_user_id"), adminId)
-        
-        // Set admin_token cookie (this is what middleware.ts checks for)
-        document.cookie = `admin_token=${token}; path=/;`
-        
-        setIsAuthenticated(true)
-        setUserType("admin")
-        setUser({ _id: adminId })
-        return true
+      // Use API for admin authentication instead of hardcoded values
+      if (type === "admin") {
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'admin',
+              identifier: identifier,
+              password: password
+            }),
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              const token = `admin-${result.user._id}`;
+              sessionStorage.setItem(getStorageKey("auth_token"), token)
+              sessionStorage.setItem(getStorageKey("user_type"), "admin")
+              sessionStorage.setItem(getStorageKey("current_user_id"), result.user._id)
+              
+              // Set admin_token cookie (this is what middleware.ts checks for)
+              document.cookie = `admin_token=${token}; path=/; max-age=43200; SameSite=Lax`
+              
+              // Also set a general auth token cookie
+              document.cookie = `auth_token=${token}; path=/; max-age=43200; SameSite=Lax`
+              
+              setIsAuthenticated(true)
+              setUserType("admin")
+              setUser(result.user)
+              return true;
+            }
+          }
+          
+          console.log(`Admin login failed for identifier: ${identifier}`);
+          return false;
+        } catch (apiError) {
+          console.error("API login error:", apiError);
+          return false;
+        }
       } else if (type === "student") {
-        // Use only API for student login
         try {
           const response = await fetch('/api/auth/login', {
             method: 'POST',

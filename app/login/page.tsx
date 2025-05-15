@@ -13,11 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/lib/auth"
 import { toast } from "@/components/ui/use-toast"
 import { signIn } from "next-auth/react"
+import { fetchGlobalSettings, GlobalSettings, defaultSettings } from "@/lib/getGlobalSettings"
 
 export default function Login() {
   const router = useRouter()
   const { login } = useAuth()
   const [activeTab, setActiveTab] = useState("student")
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(defaultSettings)
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true)
   const [adminCredentials, setAdminCredentials] = useState({
     email: "",
     password: "",
@@ -31,6 +34,22 @@ export default function Login() {
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+
+  // Load global settings on component mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await fetchGlobalSettings()
+        setGlobalSettings(settings)
+      } catch (error) {
+        console.error("Error loading global settings:", error)
+      } finally {
+        setIsSettingsLoading(false)
+      }
+    }
+
+    loadSettings()
+  }, [])
 
   // Set active tab based on URL query parameter
   useEffect(() => {
@@ -178,17 +197,23 @@ export default function Login() {
     }
   }
 
+  // Get logo URL from global settings or use placeholder as fallback
+  const logoUrl = globalSettings.logo || "/placeholder.svg?height=80&width=80";
+  const siteName = globalSettings.websiteName || "Krishna Computers";
+
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/" className="inline-block">
             <Image
-              src="/placeholder.svg?height=80&width=80"
-              alt="Krishna Computer Logo"
-              width={80}
-              height={80}
+              src={logoUrl}
+              alt={`${siteName} Logo`}
+              width={100}
+              height={100}
               className="mx-auto"
+              style={{ objectFit: 'contain' }}
+              unoptimized={true}
             />
           </Link>
           <h2 className="mt-6 text-3xl font-bold text-blue-800">Welcome Back</h2>
@@ -254,18 +279,22 @@ export default function Login() {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-blue-800 hover:bg-blue-900" disabled={isLoading}>
-                    {isLoading ? "Signing In..." : "Sign In"}
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-800 hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <div className="text-center text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <Link href="/register" className="text-blue-800 hover:underline">
-                    Register now
+              <CardFooter className="flex justify-center border-t pt-4">
+                <p className="text-sm text-gray-600">
+                  Don&apos;t have an account?{" "}
+                  <Link href="/registration" className="text-blue-800 hover:underline">
+                    Register Now
                   </Link>
-                </div>
+                </p>
               </CardFooter>
             </TabsContent>
 
@@ -277,11 +306,11 @@ export default function Login() {
                 <form className="space-y-4" onSubmit={handleATCLogin}>
                   <div className="grid gap-2">
                     <label htmlFor="atc-id" className="font-medium text-gray-700">
-                      Center ID
+                      ATC ID
                     </label>
                     <Input
                       id="atc-id"
-                      placeholder="Enter your Center ID"
+                      placeholder="Enter your ATC ID"
                       value={atcCredentials.id}
                       onChange={(e) => setAtcCredentials({ ...atcCredentials, id: e.target.value })}
                       required
@@ -292,7 +321,7 @@ export default function Login() {
                       <label htmlFor="atc-password" className="font-medium text-gray-700">
                         Password
                       </label>
-                      <Link href="/forgot-password" className="text-sm text-blue-800 hover:underline">
+                      <Link href="/forgot-password?type=atc" className="text-sm text-blue-800 hover:underline">
                         Forgot password?
                       </Link>
                     </div>
@@ -305,19 +334,22 @@ export default function Login() {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-blue-800 hover:bg-blue-900" disabled={isLoading}>
-                    {isLoading ? "Signing In..." : "Sign In"}
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-800 hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <div className="text-center text-sm text-gray-600">
-                  ATC access is restricted.{" "}
-                  <Link href="/contact-us" className="text-blue-800 hover:underline">
-                    Contact admin
-                  </Link>{" "}
-                  for assistance.
-                </div>
+              <CardFooter className="flex justify-center border-t pt-4">
+                <p className="text-sm text-gray-600">
+                  Need to become an ATC?{" "}
+                  <Link href="/franchise-registration" className="text-blue-800 hover:underline">
+                    Register As ATC
+                  </Link>
+                </p>
               </CardFooter>
             </TabsContent>
 
@@ -345,7 +377,7 @@ export default function Login() {
                       <label htmlFor="admin-password" className="font-medium text-gray-700">
                         Password
                       </label>
-                      <Link href="/forgot-password" className="text-sm text-blue-800 hover:underline">
+                      <Link href="/admin/reset-password" className="text-sm text-blue-800 hover:underline">
                         Forgot password?
                       </Link>
                     </div>
@@ -358,29 +390,18 @@ export default function Login() {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-blue-800 hover:bg-blue-900" disabled={isLoading}>
-                    {isLoading ? "Signing In..." : "Sign In"}
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-800 hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <div className="text-center text-sm text-gray-600">
-                  Admin access is restricted.{" "}
-                  <Link href="/contact-us" className="text-blue-800 hover:underline">
-                    Contact support
-                  </Link>{" "}
-                  for assistance.
-                </div>
-              </CardFooter>
             </TabsContent>
           </Card>
         </Tabs>
-
-        <div className="text-center mt-8">
-          <Link href="/" className="text-gray-600 hover:text-blue-800">
-            ← Back to Home
-          </Link>
-        </div>
       </div>
     </div>
   )

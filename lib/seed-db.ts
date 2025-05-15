@@ -26,3 +26,46 @@ export async function seedDatabase() {
     console.error("Error seeding database:", error)
   }
 }
+
+export async function ensureAdminExists(forceCreate = false) {
+  try {
+    await connectToDatabase()
+
+    // Check if admin user exists
+    const adminExists = await User.findOne({ 
+      role: "admin",
+      email: "admin@krishnacomputers.com" 
+    })
+
+    if (!adminExists || forceCreate) {
+      // Create or update admin user
+      const hashedPassword = await bcrypt.hash("admin123", 10)
+      
+      if (forceCreate && adminExists) {
+        // Update existing admin
+        await User.findByIdAndUpdate(adminExists._id, {
+          username: "admin",
+          email: "admin@krishnacomputers.com",
+          password: hashedPassword,
+          role: "admin",
+        })
+        console.log("Admin user updated successfully")
+      } else {
+        // Create new admin
+        await User.create({
+          username: "admin",
+          email: "admin@krishnacomputers.com",
+          password: hashedPassword,
+          role: "admin",
+        })
+        console.log("Admin user created successfully")
+      }
+      return true
+    }
+    
+    return false
+  } catch (error) {
+    console.error("Error ensuring admin exists:", error)
+    return false
+  }
+}

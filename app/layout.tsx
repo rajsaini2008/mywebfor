@@ -11,7 +11,7 @@ import { Providers } from "@/components/providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Krishna Computers - Computer Education Institute",
+  title: "Krishna Computers",
   description: "Krishna Computers - Leading computer education institute offering various courses and certifications",
   generator: 'v0.dev',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1'

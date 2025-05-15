@@ -21,7 +21,7 @@ export function CmsContent({
   as: Component = "div",
   className,
   fallback,
-  renderHtml = false,
+  renderHtml = true,
 }: CmsContentProps) {
   const { content, isLoading, error } = useCmsContent({
     section,

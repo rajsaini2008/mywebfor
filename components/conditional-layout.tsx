@@ -2,9 +2,7 @@
 
 import React from "react"
 import { usePathname } from "next/navigation"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import Navigation from "@/components/navigation"
+import MainWrapper from "@/components/MainWrapper"
 
 export function ConditionalLayout({
   children,
@@ -25,12 +23,5 @@ export function ConditionalLayout({
     return <main>{children}</main>
   }
 
-  return (
-    <>
-      <Header />
-      <Navigation />
-      <main>{children}</main>
-      <Footer />
-    </>
-  )
+  return <MainWrapper>{children}</MainWrapper>
 } 
