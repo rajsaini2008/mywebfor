@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth"
 import { toast } from "@/components/ui/use-toast"
 import { signIn } from "next-auth/react"
 import { fetchGlobalSettings, GlobalSettings, defaultSettings } from "@/lib/getGlobalSettings"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function Login() {
   const router = useRouter()
@@ -34,6 +35,12 @@ export default function Login() {
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [showStudentPassword, setShowStudentPassword] = useState(false)
+  const [showAtcPassword, setShowAtcPassword] = useState(false)
+  const [showAdminPassword, setShowAdminPassword] = useState(false)
+  const [studentError, setStudentError] = useState("");
+  const [atcError, setAtcError] = useState("");
+  const [adminError, setAdminError] = useState("");
 
   // Load global settings on component mount
   useEffect(() => {
@@ -77,10 +84,9 @@ export default function Login() {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+    setAdminError("");
     try {
       const success = await login("admin", adminCredentials.email, adminCredentials.password)
-
       if (success) {
         toast({
           title: "Login successful",
@@ -88,6 +94,7 @@ export default function Login() {
         })
         router.push("/admin/dashboard")
       } else {
+        setAdminError("Invalid email or password");
         toast({
           title: "Login failed",
           description: "Invalid email or password",
@@ -95,6 +102,7 @@ export default function Login() {
         })
       }
     } catch (error) {
+      setAdminError("An error occurred during login");
       console.error("Login error:", error)
       toast({
         title: "Login failed",
@@ -109,7 +117,7 @@ export default function Login() {
   const handleStudentLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+    setStudentError("");
     try {
       console.log("Student login attempt:", studentCredentials.id);
       
@@ -143,7 +151,7 @@ export default function Login() {
         })
         router.push("/student/dashboard")
       } else {
-        console.log("Student login failed: Invalid credentials");
+        setStudentError("Invalid student ID or password");
         toast({
           title: "Login failed",
           description: "Invalid student ID or password",
@@ -151,7 +159,7 @@ export default function Login() {
         })
       }
     } catch (error) {
-      console.error("Student login error:", error);
+      setStudentError("An error occurred during login");
       toast({
         title: "Login failed",
         description: "An error occurred during login",
@@ -165,7 +173,7 @@ export default function Login() {
   const handleATCLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+    setAtcError("");
     try {
       console.log("ATC login attempt:", atcCredentials.id);
       const success = await login("atc", atcCredentials.id, atcCredentials.password)
@@ -178,7 +186,7 @@ export default function Login() {
         })
         router.push("/atc/dashboard")
       } else {
-        console.log("ATC login failed: Invalid credentials");
+        setAtcError("Invalid ATC ID or password");
         toast({
           title: "Login failed",
           description: "Invalid ATC ID or password",
@@ -186,7 +194,7 @@ export default function Login() {
         })
       }
     } catch (error) {
-      console.error("ATC login error:", error);
+      setAtcError("An error occurred during login");
       toast({
         title: "Login failed",
         description: "An error occurred during login",
@@ -270,14 +278,28 @@ export default function Login() {
                         Forgot password?
                       </Link>
                     </div>
-                    <Input
-                      id="student-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={studentCredentials.password}
-                      onChange={(e) => setStudentCredentials({ ...studentCredentials, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="student-password"
+                        type={showStudentPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={studentCredentials.password}
+                        onChange={(e) => setStudentCredentials({ ...studentCredentials, password: e.target.value })}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        tabIndex={-1}
+                        onClick={() => setShowStudentPassword((v) => !v)}
+                        aria-label={showStudentPassword ? "Hide password" : "Show password"}
+                      >
+                        {showStudentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                    {studentError && (
+                      <div className="text-red-600 text-sm mt-1">{studentError}</div>
+                    )}
                   </div>
                   <Button
                     type="submit"
@@ -325,14 +347,28 @@ export default function Login() {
                         Forgot password?
                       </Link>
                     </div>
-                    <Input
-                      id="atc-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={atcCredentials.password}
-                      onChange={(e) => setAtcCredentials({ ...atcCredentials, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="atc-password"
+                        type={showAtcPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={atcCredentials.password}
+                        onChange={(e) => setAtcCredentials({ ...atcCredentials, password: e.target.value })}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        tabIndex={-1}
+                        onClick={() => setShowAtcPassword((v) => !v)}
+                        aria-label={showAtcPassword ? "Hide password" : "Show password"}
+                      >
+                        {showAtcPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                    {atcError && (
+                      <div className="text-red-600 text-sm mt-1">{atcError}</div>
+                    )}
                   </div>
                   <Button
                     type="submit"
@@ -381,14 +417,28 @@ export default function Login() {
                         Forgot password?
                       </Link>
                     </div>
-                    <Input
-                      id="admin-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={adminCredentials.password}
-                      onChange={(e) => setAdminCredentials({ ...adminCredentials, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="admin-password"
+                        type={showAdminPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={adminCredentials.password}
+                        onChange={(e) => setAdminCredentials({ ...adminCredentials, password: e.target.value })}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        tabIndex={-1}
+                        onClick={() => setShowAdminPassword((v) => !v)}
+                        aria-label={showAdminPassword ? "Hide password" : "Show password"}
+                      >
+                        {showAdminPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                    {adminError && (
+                      <div className="text-red-600 text-sm mt-1">{adminError}</div>
+                    )}
                   </div>
                   <Button
                     type="submit"
